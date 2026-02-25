@@ -41,7 +41,8 @@ class GenerateRequest(BaseModel):
     use_adg: bool = Field(default=False)
     cfg_interval_start: float = Field(default=0.0)
     cfg_interval_end: float = Field(default=1.0)
-    shift: float = Field(default=1.0)
+    shift: float = Field(default=3.0, ge=1.0, le=5.0)
+    infer_method: str = Field(default="ode", pattern=r"^(ode|sde)$")
 
     # Task-specific
     repainting_start: float = Field(default=0.0)
@@ -63,7 +64,7 @@ class GenerateRequest(BaseModel):
     lm_top_k: int = Field(default=0)
     lm_top_p: float = Field(default=0.9)
     use_cot_metas: bool = Field(default=True)
-    use_cot_caption: bool = Field(default=True)
+    use_cot_caption: bool = Field(default=False)
     use_cot_language: bool = Field(default=True)
 
     # HeartMuLa-specific

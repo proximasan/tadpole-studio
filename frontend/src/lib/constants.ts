@@ -66,7 +66,14 @@ export const DURATION_MIN = 10;
 export const DURATION_MAX = 300;
 export const DURATION_DEFAULT = 60;
 
-export const AUDIO_FORMATS = ["flac", "wav", "mp3", "ogg"] as const;
+export const AUDIO_FORMATS = [
+  { value: "flac", label: "FLAC (Lossless)" },
+  { value: "mp3", label: "MP3" },
+  { value: "wav", label: "WAV (16-bit)" },
+  { value: "wav32", label: "WAV (32-bit Float)" },
+  { value: "opus", label: "Opus" },
+  { value: "aac", label: "AAC" },
+] as const;
 
 export const MODE_TO_TASK_TYPE: Record<string, string> = {
   Simple: "text2music",
@@ -104,6 +111,10 @@ export const GUIDANCE_SCALE_DEFAULT = 7;
 export const BATCH_SIZE_MIN = 1;
 export const BATCH_SIZE_MAX = 8;
 export const BATCH_SIZE_DEFAULT = 2;
+
+export const SHIFT_MIN = 1;
+export const SHIFT_MAX = 5;
+export const SHIFT_DEFAULT = 3;
 
 export const LM_TEMPERATURE_MIN = 0;
 export const LM_TEMPERATURE_MAX = 2;

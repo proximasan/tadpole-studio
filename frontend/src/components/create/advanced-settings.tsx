@@ -35,6 +35,8 @@ import {
   INFERENCE_STEPS_MAX,
   GUIDANCE_SCALE_MIN,
   GUIDANCE_SCALE_MAX,
+  SHIFT_MIN,
+  SHIFT_MAX,
   BATCH_SIZE_MIN,
   BATCH_SIZE_MAX,
   LM_TEMPERATURE_MIN,
@@ -194,7 +196,7 @@ function AceStepAdvancedSettings() {
               <TooltipTrigger asChild>
                 <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
               </TooltipTrigger>
-              <TooltipContent>Number of denoising steps. Higher = better quality, slower.</TooltipContent>
+              <TooltipContent>Number of denoising steps. Higher = better quality, slower. Default: 8 for turbo, 32+ for base models.</TooltipContent>
             </Tooltip>
           </div>
           <span className="text-xs text-muted-foreground">
@@ -237,6 +239,56 @@ function AceStepAdvancedSettings() {
         {!supportsCfg && (
           <p className="text-xs text-muted-foreground">Not used by turbo models</p>
         )}
+      </div>
+
+      {/* Shift */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <Label>Shift</Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>Timestep shift factor for the diffusion noise schedule. Default 3.0 for both turbo and base models.</TooltipContent>
+            </Tooltip>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {settings.shift.toFixed(1)}
+          </span>
+        </div>
+        <Slider
+          value={[settings.shift]}
+          min={SHIFT_MIN}
+          max={SHIFT_MAX}
+          step={0.1}
+          onValueChange={([v]) => update({ shift: v })}
+        />
+      </div>
+
+      {/* Inference Method */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-1">
+          <Label>Sampler</Label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent>ODE = fast, deterministic. SDE = stochastic, adds noise each step for more variation.</TooltipContent>
+          </Tooltip>
+        </div>
+        <Select
+          value={settings.inferMethod}
+          onValueChange={(v) => update({ inferMethod: v })}
+        >
+          <SelectTrigger className="h-8">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ode">ODE (Deterministic)</SelectItem>
+            <SelectItem value="sde">SDE (Stochastic)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Seed */}
@@ -284,8 +336,8 @@ function AceStepAdvancedSettings() {
         />
       </div>
 
-      {/* Batch Size / Audio Format / Thinking row */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Batch Size / Audio Format */}
+      <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <div className="flex items-center gap-1">
             <Label>Batch Size</Label>
@@ -335,33 +387,15 @@ function AceStepAdvancedSettings() {
             </SelectTrigger>
             <SelectContent>
               {AUDIO_FORMATS.map((fmt) => (
-                <SelectItem key={fmt} value={fmt}>
-                  {fmt.toUpperCase()}
+                <SelectItem key={fmt.value} value={fmt.value}>
+                  {fmt.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-
-        <div className="flex items-end gap-2 pb-1">
-          <Switch
-            id="thinking"
-            checked={settings.thinking}
-            onCheckedChange={(v) => update({ thinking: v })}
-          />
-          <div className="flex items-center gap-1">
-            <Label htmlFor="thinking" className="cursor-pointer text-xs">
-              Thinking
-            </Label>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent>Enable LM reasoning for better caption/lyrics structure.</TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
       </div>
+
     </div>
   );
 }

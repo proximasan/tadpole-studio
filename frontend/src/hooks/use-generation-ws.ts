@@ -43,6 +43,16 @@ export function useGenerationWs() {
 
       const store = useGenerationStore.getState();
 
+      // Auto-swap: WS messages can arrive with the server job_id before the
+      // HTTP response triggers swapJobId. If we see an unknown job_id but have
+      // a queued placeholder, swap it now so the message is applied correctly.
+      if (!store.activeJobs.some((j) => j.jobId === job_id)) {
+        const queued = store.activeJobs.find((j) => j.status === "queued");
+        if (queued) {
+          store.swapJobId(queued.jobId, job_id);
+        }
+      }
+
       if (type === "title") {
         const title = msg.title ?? null;
         const historyId = msg.history_id ?? null;

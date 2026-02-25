@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   submitGeneration,
   cancelJob,
+  fetchJobStatus,
   formatCaption as formatCaptionApi,
   createSample as createSampleApi,
 } from "@/lib/api/client";
@@ -50,12 +51,17 @@ export function useGeneration() {
       task_type: taskType,
       inference_steps: adv.inferenceSteps,
       guidance_scale: adv.guidanceScale,
+      shift: adv.shift,
+      infer_method: adv.inferMethod,
       seed: adv.seed,
       thinking: adv.thinking,
       lm_temperature: adv.lmTemperature,
       batch_size: isHeartMuLa ? 1 : adv.batchSize,
       audio_format: isHeartMuLa ? "mp3" : adv.audioFormat,
       auto_title: autoTitleEnabled && !customTitle,
+      use_cot_caption: adv.thinking && adv.useCotCaption,
+      use_cot_metas: adv.thinking && adv.useCotMetas,
+      use_cot_language: adv.thinking && adv.useCotLanguage,
     };
 
     // Add HeartMuLa-specific params
@@ -295,6 +301,26 @@ export function useGeneration() {
       }
 
       swapJobId(tempJobId, serverJobId);
+
+      // Sync initial state: early WS messages may have arrived before
+      // swapJobId mapped the temp placeholder to the real server ID.
+      // Poll once after a short delay to catch any missed updates.
+      setTimeout(async () => {
+        try {
+          const status = await fetchJobStatus(serverJobId);
+          const current = useGenerationStore.getState().activeJobs.find(
+            (j) => j.jobId === serverJobId,
+          );
+          if (!current || current.status === "completed" || current.status === "failed") return;
+          if (status.progress > current.progress) {
+            useGenerationStore.getState().updateJob(serverJobId, {
+              status: status.status === "running" ? "running" : current.status,
+              progress: status.progress,
+              stage: status.stage || current.stage,
+            });
+          }
+        } catch { /* Non-critical — WS will deliver updates */ }
+      }, 2000);
     } catch (err) {
       useGenerationStore.getState().removeJob(tempJobId);
       const message = err instanceof Error ? err.message : "Generation failed";

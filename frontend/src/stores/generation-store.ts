@@ -80,11 +80,16 @@ export interface CompleteForm {
 export interface AdvancedSettings {
   inferenceSteps: number;
   guidanceScale: number;
+  shift: number;
+  inferMethod: string;
   seed: number;
   thinking: boolean;
   lmTemperature: number;
   batchSize: number;
   audioFormat: string;
+  useCotCaption: boolean;
+  useCotMetas: boolean;
+  useCotLanguage: boolean;
 }
 
 export interface HeartMuLaAdvancedSettings {
@@ -127,6 +132,9 @@ interface GenerationState {
   autoGenCount: number;
   autoGenMaxRuns: number; // 0 = unlimited
 
+  // Model-type auto-switch tracking
+  lastAutoSwitchedModelType: string;
+
   // Auto-Title
   autoTitleEnabled: boolean;
   customTitle: string;
@@ -151,6 +159,7 @@ interface GenerationState {
   incrementAutoGenCount: () => void;
   resetAutoGenCount: () => void;
   setAutoGenMaxRuns: (v: number) => void;
+  setLastAutoSwitchedModelType: (v: string) => void;
   setAutoTitleEnabled: (v: boolean) => void;
   setCustomTitle: (v: string) => void;
   swapJobId: (oldId: string, newId: string) => void;
@@ -243,11 +252,16 @@ export const useGenerationStore = create<GenerationState>()((set) => ({
   advancedSettings: {
     inferenceSteps: 8,
     guidanceScale: 7,
+    shift: 3,
+    inferMethod: "ode",
     seed: -1,
     thinking: true,
     lmTemperature: 0.85,
     batchSize: 2,
     audioFormat: "flac",
+    useCotCaption: false,
+    useCotMetas: true,
+    useCotLanguage: true,
   },
 
   heartmulaSettings: {
@@ -264,6 +278,8 @@ export const useGenerationStore = create<GenerationState>()((set) => ({
   autoSaveEnabled: false,
   autoGenCount: 0,
   autoGenMaxRuns: 0,
+
+  lastAutoSwitchedModelType: "",
 
   autoTitleEnabled: true,
   customTitle: "",
@@ -323,6 +339,7 @@ export const useGenerationStore = create<GenerationState>()((set) => ({
   incrementAutoGenCount: () => set((s) => ({ autoGenCount: s.autoGenCount + 1 })),
   resetAutoGenCount: () => set({ autoGenCount: 0 }),
   setAutoGenMaxRuns: (v) => set({ autoGenMaxRuns: v }),
+  setLastAutoSwitchedModelType: (v) => set({ lastAutoSwitchedModelType: v }),
   setAutoTitleEnabled: (v) => set({ autoTitleEnabled: v }),
   setCustomTitle: (v) => set({ customTitle: v }),
   swapJobId: (oldId, newId) =>
@@ -366,11 +383,16 @@ export const useGenerationStore = create<GenerationState>()((set) => ({
     const advancedSettings: AdvancedSettings = {
       inferenceSteps: (params.inference_steps as number) ?? 8,
       guidanceScale: (params.guidance_scale as number) ?? 7,
+      shift: (params.shift as number) ?? 3,
+      inferMethod: (params.infer_method as string) ?? "ode",
       seed: (params.seed as number) ?? -1,
       thinking: (params.thinking as boolean) ?? true,
       lmTemperature: (params.lm_temperature as number) ?? 0.85,
       batchSize: (params.batch_size as number) ?? 2,
       audioFormat: (params.audio_format as string) ?? "flac",
+      useCotCaption: (params.use_cot_caption as boolean) ?? false,
+      useCotMetas: (params.use_cot_metas as boolean) ?? true,
+      useCotLanguage: (params.use_cot_language as boolean) ?? true,
     };
 
     if (taskType === "music2music") {

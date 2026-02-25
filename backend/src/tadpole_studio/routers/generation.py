@@ -550,5 +550,5 @@ async def websocket_generation(websocket: WebSocket) -> None:
     try:
         while True:
             await websocket.receive_text()
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, Exception):
         await generation_ws_manager.disconnect(websocket)

@@ -83,6 +83,8 @@ export interface GenerateRequest {
   inference_steps?: number;
   seed?: number;
   guidance_scale?: number;
+  shift?: number;
+  infer_method?: string;
   batch_size?: number;
   audio_format?: string;
   thinking?: boolean;

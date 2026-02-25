@@ -368,6 +368,16 @@ class AceStepBackend(MusicBackend):
             thinking=thinking,
             temp=getattr(params, "lm_temperature", None),
         )
+        logger.info(
+            "DiT params [generate_music]: steps={} cfg={} shift={} method={} seed={} batch={} fmt={}",
+            getattr(params, "inference_steps", "?"),
+            getattr(params, "guidance_scale", "?"),
+            getattr(params, "shift", "?"),
+            getattr(params, "infer_method", "ode"),
+            getattr(params, "seed", "?"),
+            batch_size,
+            audio_format,
+        )
 
         def _run_with_low_priority():
             try:

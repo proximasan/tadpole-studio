@@ -1,13 +1,17 @@
 import sys
 from unittest.mock import MagicMock
 
-# Mock GPU-dependent modules before any tadpole_studio import
+# Mock GPU-dependent modules before any tadpole_studio import.
+# mlx_lm and transformers are included because mlx_lm's import chain
+# (mlx_lm → transformers → importlib.util.find_spec("torch")) fails
+# when torch is mocked.
 for mod_name in [
     "acestep", "acestep.handler", "acestep.llm_inference",
     "acestep.inference", "acestep.training_v2",
     "acestep.training_v2.preprocess", "acestep.training_v2.configs",
     "acestep.training_v2.trainer_fixed",
     "torch", "torch.cuda", "torch.backends", "torch.backends.mps",
+    "mlx_lm", "transformers",
 ]:
     sys.modules.setdefault(mod_name, MagicMock())
 
@@ -39,14 +43,12 @@ async def client(tmp_path):
     (data_dir / "datasets").mkdir(exist_ok=True)
     (data_dir / "training_output").mkdir(exist_ok=True)
 
-    # Ensure generation service is uninitialized
+    # Ensure generation service is uninitialized — clear backends so all
+    # delegating properties (dit_initialized, lm_initialized, device, etc.)
+    # return their safe defaults (False, "", etc.)
     from tadpole_studio.services.generation import generation_service
 
-    generation_service.dit_initialized = False
-    generation_service.lm_initialized = False
-    generation_service.device = "cpu"
-    generation_service.active_dit_model = ""
-    generation_service.active_lm_model = ""
+    generation_service._backends.clear()
 
     from tadpole_studio.db.connection import init_db, close_db
 
